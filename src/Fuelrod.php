@@ -17,6 +17,7 @@ class Fuelrod
 
     protected $baseUrl;
 
+
     public function __construct($username, $password, $baseUrl = "https://api.tsobu.co.ke")
     {
         $this->username = $username;

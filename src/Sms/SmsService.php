@@ -12,7 +12,7 @@ class SmsService extends RestService
 
     public function __construct($client, $username, $content)
     {
-        parent::__construct($client, $username);
+        parent::__construct($content, $client, $username);
         $this->httpClient = $content;
     }
 
