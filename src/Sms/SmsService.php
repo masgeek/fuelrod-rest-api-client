@@ -20,7 +20,7 @@ class SmsService extends RestService
      * @return array
      * @throws GuzzleException
      */
-    public function sendSingleSms(array $payload): array
+    public function sendSingleSms(array $payload, $async = false): array
     {
         $messagePayload = [];
         if (!isset($payload['to'])) {
@@ -44,6 +44,7 @@ class SmsService extends RestService
 
         /* @var $httpClient Client */
         $response = $this->httpClient->post('v1/sms/single', [
+            'future' => $async,
             'json' => $messagePayload
         ]);
 
