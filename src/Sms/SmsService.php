@@ -43,6 +43,8 @@ class SmsService extends RestService
             "user" => $this->username
         ];
 
+        return $messagePayload;
+
         /* @var $httpClient Client */
         $response = $this->httpClient->post('v1/sms/single', [
             'verify' => false,
