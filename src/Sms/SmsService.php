@@ -17,10 +17,11 @@ class SmsService extends RestService
 
     /**
      * @param array $payload
+     * @param bool $async
      * @return array
      * @throws GuzzleException
      */
-    public function sendSingleSms(array $payload, $async = false): array
+    public function sendSingleSms(array $payload, bool $async = false): array
     {
         $messagePayload = [];
         if (!isset($payload['to'])) {

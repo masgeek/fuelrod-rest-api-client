@@ -43,12 +43,13 @@ class Fuelrod
 
     /**
      * @param array $message
+     * @param bool $async
      * @return array
      * @throws GuzzleException
      */
-    public function sms(array $message): array
+    public function sms(array $message, bool $async = false): array
     {
         $content = new SmsService($this->httpClient, $this->username, $this->password);
-        return $content->sendSingleSms($message);
+        return $content->sendSingleSms($message, $async);
     }
 }
