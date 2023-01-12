@@ -8,7 +8,7 @@ use Yiisoft\Arrays\ArrayHelper;
 
 class SmsService extends RestService
 {
-    protected Client $httpClient;
+    protected $httpClient;
 
     public function __construct($client, $username, $content)
     {
@@ -45,6 +45,7 @@ class SmsService extends RestService
             "user" => $this->username
         ];
 
+        /* @var $httpClient Client */
         $response = $this->httpClient->post('v1/sms/single', ['json' => $messagePayload]);
 
         return $this->success($response);
