@@ -40,11 +40,11 @@ class SmsService extends RestService
         $messagePayload['SMSText'] = $payload['message'];
         $messagePayload['password'] = $this->password;
         $messagePayload['user'] = $this->username;
-        
+
 
         /* @var $httpClient Client */
         $response = $this->httpClient->post('v1/sms/single', [
-            'verify' => false,
+//            'verify' => false,
             'json' => $messagePayload
         ]);
 
