@@ -9,11 +9,11 @@ use GuzzleHttp\Exception\GuzzleException;
 class Fuelrod
 {
 
-    protected $httpClient;
-    protected $legacyClient;
-    protected $baseDomain;
-    protected $username;
-    protected $password;
+    protected Client $httpClient;
+    protected Client $legacyClient;
+    protected string $baseDomain;
+    protected string $username;
+    protected string $password;
 
     protected $baseUrl;
 
@@ -36,7 +36,7 @@ class Fuelrod
             'base_uri' => $this->baseUrl,
             'headers' => [
                 'Content-Type' => 'multipart/form-data',
-                'Accept' => 'application/json'
+//                'Accept' => 'application/json'
             ]
         ]);
     }

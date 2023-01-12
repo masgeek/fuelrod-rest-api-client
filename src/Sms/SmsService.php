@@ -7,12 +7,12 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class SmsService extends RestService
 {
-    protected $httpClient;
+    protected Client $httpClient;
 
-    public function __construct($client, $username, $content)
+    public function __construct($httpClient, $username, $password)
     {
-        parent::__construct($content, $client, $username);
-        $this->httpClient = $content;
+        parent::__construct($httpClient, $username, $password);
+        $this->httpClient = $httpClient;
     }
 
     /**

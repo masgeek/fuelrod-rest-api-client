@@ -2,12 +2,14 @@
 
 namespace Fuelrod\Sms;
 
+use GuzzleHttp\Client;
+
 abstract class RestService
 {
-    protected $httpClient;
-    protected $username;
-    protected $password;
-    protected $accessToken;
+    protected Client $httpClient;
+    protected string $username;
+    protected string $password;
+    protected string $accessToken;
 
     public function __construct($httpClient, $username, $password)
     {
