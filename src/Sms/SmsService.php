@@ -37,13 +37,10 @@ class SmsService extends RestService
             $messagePayload['GSM'] = $payload['to'];
         }
 
-        $messagePayload[] = [
-            "SMSText" => $payload['message'],
-            "password" => $this->password,
-            "user" => $this->username
-        ];
-
-        return $messagePayload;
+        $messagePayload['SMSText'] = $payload['message'];
+        $messagePayload['password'] = $this->password;
+        $messagePayload['user'] = $this->username;
+        
 
         /* @var $httpClient Client */
         $response = $this->httpClient->post('v1/sms/single', [
