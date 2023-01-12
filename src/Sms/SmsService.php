@@ -4,7 +4,6 @@ namespace Fuelrod\Sms;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use Yiisoft\Arrays\ArrayHelper;
 
 class SmsService extends RestService
 {
@@ -24,20 +23,20 @@ class SmsService extends RestService
     public function sendSingleSms(array $payload): array
     {
         $messagePayload = [];
-        if (!ArrayHelper::keyExists($payload, 'to')) {
+        if (!isset($payload['to'])) {
             return $this->error("Recipient phone number must be defined");
         }
 
-        if (!ArrayHelper::keyExists($payload, 'message')) {
+        if (!isset($payload['message'])) {
             return $this->error("SMS message must be defined");
         }
 
-        if (is_array(ArrayHelper::getColumn($payload, 'to'))) {
+        if (is_array($payload['to'])) {
             $messagePayload['GSM'] = implode(",", $payload['to']);
         } else {
             $messagePayload['GSM'] = $payload['to'];
         }
-        
+
         $messagePayload[] = [
             "SMSText" => $payload['message'],
             "password" => $this->password,

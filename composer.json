@@ -21,8 +21,7 @@
     "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "guzzlehttp/guzzle": "^6.0 || ^7.5",
-    "yiisoft/arrays": "^2.1"
+    "guzzlehttp/guzzle": "^6.0 || ^7.5"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.3"
