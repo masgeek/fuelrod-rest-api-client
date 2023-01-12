@@ -33,14 +33,13 @@ class SmsService extends RestService
         }
 
         if (is_array(ArrayHelper::getColumn($payload, 'to'))) {
-            $numbers = ArrayHelper::getValue($payload, 'to');
-            $messagePayload['GSM'] = implode(",", $numbers);
+            $messagePayload['GSM'] = implode(",", $payload['to']);
         } else {
-            $messagePayload['GSM'] = ArrayHelper::getValue($payload, 'to');
+            $messagePayload['GSM'] = $payload['to'];
         }
-
+        
         $messagePayload[] = [
-            "SMSText" => ArrayHelper::getValue($payload, 'message'),
+            "SMSText" => $payload['message'],
             "password" => $this->password,
             "user" => $this->username
         ];
