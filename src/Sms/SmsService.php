@@ -44,7 +44,10 @@ class SmsService extends RestService
         ];
 
         /* @var $httpClient Client */
-        $response = $this->httpClient->post('v1/sms/single', ['json' => $messagePayload]);
+        $response = $this->httpClient->post('v1/sms/single', [
+            'verify' => false,
+            'json' => $messagePayload
+        ]);
 
         return $this->success($response);
     }
