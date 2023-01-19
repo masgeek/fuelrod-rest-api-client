@@ -1,7 +1,6 @@
 {
   "name": "masgeek/fuelrod-rest-api-client",
   "description": "Fuelrod rEST api package for messaging and other things",
-  "version": "1.0.0",
   "keywords": [
     "SMS",
     "fuelrod",
