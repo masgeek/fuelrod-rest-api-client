@@ -32,11 +32,7 @@ class SmsService extends RestService
             return $this->error("SMS message must be defined");
         }
 
-        if (is_array($payload['to'])) {
-            $numbers = implode(",", $payload['to']);
-        } else {
-            $numbers = [$payload['to']];
-        }
+        $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
 
         $resp = [];
         foreach ($numbers as $key => $number) {
