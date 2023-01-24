@@ -54,7 +54,7 @@ class SmsService extends RestService
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             $response = $e->getResponse();
-            return $this->error($response->getBody()->getContents());
+            return $this->error($response);
         }
     }
 
