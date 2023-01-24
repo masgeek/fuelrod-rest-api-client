@@ -35,7 +35,7 @@ class SmsService extends RestService
         if (is_array($payload['to'])) {
             $numbers = implode(",", $payload['to']);
         } else {
-            $numbers = $payload['to'];
+            $numbers = [$payload['to']];
         }
 
         $resp = [];
