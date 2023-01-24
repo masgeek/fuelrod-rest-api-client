@@ -32,24 +32,41 @@ class SmsService extends RestService
             return $this->error("SMS message must be defined");
         }
 
-        if (is_array($payload['to'])) {
-            $messagePayload['GSM'] = implode(",", $payload['to']);
-        } else {
-            $messagePayload['GSM'] = $payload['to'];
+        $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
+
+        $resp = [];
+        foreach ($numbers as $key => $number) {
+            $messagePayload['GSM'] = $number;
+            $messagePayload['SMSText'] = $payload['message'];
+            $messagePayload['password'] = $this->password;
+            $messagePayload['user'] = $this->username;
+
+            $resp[] = $this->processMessage($messagePayload, $async);
         }
+        return $resp;
+    }
 
-        $messagePayload['SMSText'] = $payload['message'];
-        $messagePayload['password'] = $this->password;
-        $messagePayload['user'] = $this->username;
-
-
+    /**
+     * @param array $messagePayload
+     * @param $async
+     * @return array
+     * @throws GuzzleException
+     */
+    private function processMessage(array $messagePayload, $async): array
+    {
         /* @var $httpClient Client */
-        $response = $this->httpClient->post('v1/sms/single', [
-            'future' => $async,
-            'json' => $messagePayload
-        ]);
+        try {
+            $response = $this->httpClient->post('v1/sms/single', [
+                'future' => $async,
+                'json' => $messagePayload
+            ]);
 
-        return $this->success($response);
+            return $this->success($response);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            return $this->error($response);
+        }
     }
 
 }
