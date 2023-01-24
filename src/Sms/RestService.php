@@ -22,7 +22,7 @@ abstract class RestService
     {
         return [
             'status' => 'error',
-            'data' => json_decode($data->response->getBody()->getContents())
+            'data' => json_decode($data->getBody()->getContents())
         ];
     }
 
