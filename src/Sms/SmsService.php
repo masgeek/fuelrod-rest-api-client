@@ -33,16 +33,31 @@ class SmsService extends RestService
         }
 
         if (is_array($payload['to'])) {
-            $messagePayload['GSM'] = implode(",", $payload['to']);
+            $numbers = implode(",", $payload['to']);
         } else {
-            $messagePayload['GSM'] = $payload['to'];
+            $numbers = $payload['to'];
         }
 
-        $messagePayload['SMSText'] = $payload['message'];
-        $messagePayload['password'] = $this->password;
-        $messagePayload['user'] = $this->username;
+        $resp = [];
+        foreach ($numbers as $key => $number) {
+            $messagePayload['GSM'] = $number;
+            $messagePayload['SMSText'] = $payload['message'];
+            $messagePayload['password'] = $this->password;
+            $messagePayload['user'] = $this->username;
 
+            $resp[] = $this->processMessage($messagePayload, $async);
+        }
+        return $resp;
+    }
 
+    /**
+     * @param array $messagePayload
+     * @param $async
+     * @return array
+     * @throws GuzzleException
+     */
+    private function processMessage(array $messagePayload, $async): array
+    {
         /* @var $httpClient Client */
         try {
             $response = $this->httpClient->post('v1/sms/single', [
