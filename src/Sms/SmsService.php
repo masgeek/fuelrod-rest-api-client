@@ -44,12 +44,18 @@ class SmsService extends RestService
 
 
         /* @var $httpClient Client */
-        $response = $this->httpClient->post('v1/sms/single', [
-            'future' => $async,
-            'json' => $messagePayload
-        ]);
+        try {
+            $response = $this->httpClient->post('v1/sms/single', [
+                'future' => $async,
+                'json' => $messagePayload
+            ]);
 
-        return $this->success($response);
+            return $this->success($response);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            return $this->error($response->getBody()->getContents());
+        }
     }
 
 }
