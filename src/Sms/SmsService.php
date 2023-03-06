@@ -23,11 +23,11 @@ class SmsService extends RestService
         ];
 
         if (!isset($payload['to'])) {
-            throw new FuelrodException("Recipient phone number must be defined", 422);
+            throw new FuelrodException("Recipient phone number must be defined in array key `to`", 422);
         }
 
         if (!isset($payload['message'])) {
-            throw new FuelrodException("SMS message must be defined", 422);
+            throw new FuelrodException("SMS message must be defined in array key `message`", 422);
         }
 
         $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
