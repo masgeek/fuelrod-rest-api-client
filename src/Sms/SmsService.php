@@ -10,11 +10,16 @@ class SmsService extends RestService
 
     /**
      * @param array $payload
+     * @param bool $plainSms
      * @return array
      */
-    public function processMessage(array $payload): array
+    public function processMessage(array $payload, bool $plainSms = false): array
     {
-        $messagePayload = [];
+        $messagePayload = [
+            'password' => $this->password,
+            'user' => $this->username
+        ];
+
         if (!isset($payload['to'])) {
             return $this->error("Recipient phone number must be defined");
         }
@@ -28,8 +33,13 @@ class SmsService extends RestService
         foreach ($numbers as $key => $number) {
             $messagePayload['GSM'] = $number;
             $messagePayload['SMSText'] = $payload['message'];
-            $messagePayload['password'] = $this->password;
-            $messagePayload['user'] = $this->username;
+        }
+
+        if ($plainSms) {
+            $messagePayload['to'] = $messagePayload['GSM'];
+            $messagePayload['text'] = $messagePayload['SMSText'];
+            unset($messagePayload['GSM']);
+            unset($messagePayload['SMSText']);
         }
         return $messagePayload;
     }
@@ -63,17 +73,18 @@ class SmsService extends RestService
      */
     public function sendPlainSms(array $messagePayload)
     {
-        $postData = http_build_query(
-            $this->processMessage($messagePayload)
-        );
+        $data = $this->processMessage($messagePayload, true);
 
-        $params = array('http' => array(
-            'method' => 'POST',
-            'header' =>
-                "Content-Type: application/x-www-form-urlencoded\r\n",
-            'content' => $postData,
-            'ignore_errors' => true,
-        ));
+
+        $params = [
+            'http' => [
+                'method' => 'POST',
+                'header' =>
+                    "Content-Type: application/json\r\n",
+                'content' => json_encode($data),
+                'ignore_errors' => true,
+            ]
+        ];
 
         $context = stream_context_create($params);
 

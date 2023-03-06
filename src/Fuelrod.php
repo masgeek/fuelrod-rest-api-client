@@ -10,15 +10,13 @@ class Fuelrod
 {
 
     protected Client $httpClient;
-    protected Client $legacyClient;
-    protected string $baseDomain;
     protected string $username;
     protected string $password;
 
-    protected $baseUrl;
+    protected string $baseUrl;
 
 
-    public function __construct($username, $password, $baseUrl = "https://api.tsobu.co.ke")
+    public function __construct(string $username, string $password, string $baseUrl)
     {
         $this->username = $username;
         $this->password = $password;
@@ -28,17 +26,9 @@ class Fuelrod
             'base_uri' => $this->baseUrl,
             'headers' => [
                 'Content-Type' => 'application/json',
-//                'Accept' => 'application/json'
             ]
         ]);
 
-        $this->legacyClient = new Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Content-Type' => 'multipart/form-data',
-//                'Accept' => 'application/json'
-            ]
-        ]);
     }
 
     /**

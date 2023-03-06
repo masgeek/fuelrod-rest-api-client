@@ -1,6 +1,6 @@
 {
   "name": "masgeek/fuelrod-rest-api-client",
-  "description": "Fuelrod rEST api package for messaging and other things",
+  "description": "Fuelrod REST api package for messaging and other things",
   "keywords": [
     "SMS",
     "fuelrod",
@@ -8,6 +8,7 @@
     "AfricasTalking"
   ],
   "type": "library",
+  "homepage": "https://www.munywele.co.ke",
   "license": "MIT",
   "authors": [
     {
@@ -15,6 +16,7 @@
       "email": "barsamms@gmail.com"
     }
   ],
+  "minimum-stability": "stable",
   "require": {
     "php": ">=7.4",
     "ext-curl": "*",
@@ -27,10 +29,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Fuelrod\\": "src/",
-      "FuelrodLegacy\\": "src/",
-      "Fuelrod\\Tests\\": "tests"
+      "Fuelrod\\": "src/"
     }
   },
-  "minimum-stability": "stable"
+  "autoload-dev": {
+    "psr-4": {
+      "Fuelrod\\Tests\\": "tests"
+    }
+  }
 }
