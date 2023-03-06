@@ -52,8 +52,11 @@ class SmsService extends RestService
      * @return array
      * @throws GuzzleException
      */
-    private function processMessage(array $messagePayload, $async): array
+    private function processMessage(array $messagePayload, $async, $useLegacy = false): array
     {
+        if ($useLegacy) {
+            return $this->processLegacy($messagePayload);
+        }
         /* @var $httpClient Client */
         try {
             $response = $this->httpClient->post('v1/sms/single', [
@@ -67,6 +70,27 @@ class SmsService extends RestService
             $response = $e->getResponse();
             return $this->error($response);
         }
+    }
+
+    private function processLegacy(array $messagePayload): array
+    {
+        $postData = http_build_query(
+            $messagePayload
+        );
+
+        $opts = array('http' =>
+            array(
+                'method' => 'POST',
+                'header' => 'Content-Type: application/x-www-form-urlencoded',
+                'content' => $postData
+            )
+        );
+
+        $context = stream_context_create($opts);
+
+        $result = file_get_contents('https://api.tsobu.co.ke', false, $context);
+
+        return [$result];
     }
 
 }
