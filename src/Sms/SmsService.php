@@ -86,7 +86,7 @@ class SmsService extends RestService
         $opts = array('http' =>
             array(
                 'method' => 'POST',
-                'header' => 'Content-Type: application/x-www-form-urlencoded',
+                'header' => 'Content-Type: application/json',
                 'content' => $postData
             )
         );
