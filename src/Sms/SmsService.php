@@ -64,7 +64,7 @@ class SmsService extends RestService
     public function sendPlainSms(array $messagePayload)
     {
         $postData = http_build_query(
-            $messagePayload
+            $this->processMessage($messagePayload)
         );
 
         $params = array('http' => array(
