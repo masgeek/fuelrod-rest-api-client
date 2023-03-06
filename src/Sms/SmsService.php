@@ -8,8 +8,7 @@ use GuzzleHttp\Exception\GuzzleException;
 
 class SmsService extends RestService
 {
-    public string $baseUrl;
-    
+
     /**
      * @param array $payload
      * @param bool $plainSms

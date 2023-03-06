@@ -2,6 +2,7 @@
 
 namespace Fuelrod;
 
+use Fuelrod\Exceptions\FuelrodException;
 use Fuelrod\Sms\SmsService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -46,14 +47,13 @@ class Fuelrod
 
     /**
      * @param array $message
-     * @param bool $async
      * @return array
-     * @throws Exceptions\FuelrodException
+     * @throws FuelrodException
      */
     public function plainSms(array $message): array
     {
         $content = new SmsService($this->username, $this->password);
-        $content->httpClient = $this->httpClient;
+        $content->baseUrl = $this->baseUrl;
         return $content->sendPlainSms($message);
     }
 }
