@@ -2,6 +2,7 @@
 
 namespace Fuelrod\Sms;
 
+use Fuelrod\Exceptions\FuelrodException;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -12,6 +13,7 @@ class SmsService extends RestService
      * @param array $payload
      * @param bool $plainSms
      * @return array
+     * @throws FuelrodException
      */
     public function processMessage(array $payload, bool $plainSms = false): array
     {
@@ -21,11 +23,11 @@ class SmsService extends RestService
         ];
 
         if (!isset($payload['to'])) {
-            return $this->error("Recipient phone number must be defined");
+            throw new FuelrodException("Recipient phone number must be defined", 422);
         }
 
         if (!isset($payload['message'])) {
-            return $this->error("SMS message must be defined");
+            throw new FuelrodException("SMS message must be defined", 422);
         }
 
         $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
