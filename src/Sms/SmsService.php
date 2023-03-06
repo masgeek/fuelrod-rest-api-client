@@ -50,7 +50,7 @@ class SmsService extends RestService
      * @param array $messagePayload
      * @param $async
      * @return array
-     * @throws GuzzleException
+     * @throws GuzzleException|FuelrodException
      */
     public function sendSingleSms(array $messagePayload, $async): array
     {
@@ -72,6 +72,7 @@ class SmsService extends RestService
     /***
      * @param array $messagePayload
      * @return mixed
+     * @throws FuelrodException
      */
     public function sendPlainSms(array $messagePayload)
     {
