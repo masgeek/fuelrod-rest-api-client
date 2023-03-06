@@ -21,7 +21,7 @@ class SmsService extends RestService
      * @return array
      * @throws GuzzleException
      */
-    public function sendSingleSms(array $payload, bool $async = false): array
+    public function sendSingleSms(array $payload, bool $async, bool $legacy): array
     {
         $messagePayload = [];
         if (!isset($payload['to'])) {
@@ -41,7 +41,11 @@ class SmsService extends RestService
             $messagePayload['password'] = $this->password;
             $messagePayload['user'] = $this->username;
 
-            $resp[] = $this->processMessage($messagePayload, $async);
+            if ($legacy) {
+                $resp[] = $this->processLegacy($messagePayload);
+            } else {
+                $resp[] = $this->processMessage($messagePayload, $async);
+            }
         }
         return $resp;
     }
@@ -52,11 +56,8 @@ class SmsService extends RestService
      * @return array
      * @throws GuzzleException
      */
-    private function processMessage(array $messagePayload, $async, $useLegacy = false): array
+    private function processMessage(array $messagePayload, $async): array
     {
-        if ($useLegacy) {
-            return $this->processLegacy($messagePayload);
-        }
         /* @var $httpClient Client */
         try {
             $response = $this->httpClient->post('v1/sms/single', [
@@ -72,7 +73,11 @@ class SmsService extends RestService
         }
     }
 
-    private function processLegacy(array $messagePayload): array
+    /**
+     * @param array $messagePayload
+     * @return false|string
+     */
+    private function processLegacy(array $messagePayload)
     {
         $postData = http_build_query(
             $messagePayload
@@ -88,9 +93,8 @@ class SmsService extends RestService
 
         $context = stream_context_create($opts);
 
-        $result = file_get_contents('https://api.tsobu.co.ke', false, $context);
+        return file_get_contents('https://api.tsobu.co.ke/v1/sms/single', false, $context);
 
-        return [$result];
     }
 
 }
