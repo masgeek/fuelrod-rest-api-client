@@ -79,12 +79,15 @@ class SmsService extends RestService
         $data = $this->processMessage($messagePayload, true);
 
 
+        $content = http_build_query($data);
+
+        $rand = (str_pad(rand(101, 456), '24', '101'));
         $params = [
             'http' => [
                 'method' => 'POST',
                 'header' =>
-                    "Content-Type: application/json\r\n",
-                'content' => json_encode($data),
+                    'Content-Type: application/x-www-form-urlencoded; boundary=---' . $rand,
+                'content' => $content,
                 'ignore_errors' => true,
             ]
         ];
