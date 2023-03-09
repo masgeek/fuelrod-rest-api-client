@@ -95,7 +95,7 @@ class SmsService extends RestService
         $context = stream_context_create($params);
 
         $resp = file_get_contents("{$this->baseUrl}/v1/sms/plain", false, $context);
-        return [json_decode($resp)];
+        return json_decode($resp, true); //return JSON as associative array
     }
 
 }
