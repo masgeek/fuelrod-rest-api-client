@@ -2,6 +2,7 @@
 
 namespace Fuelrod;
 
+use Fuelrod\Exceptions\FuelrodException;
 use Fuelrod\Sms\SmsService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -10,15 +11,13 @@ class Fuelrod
 {
 
     protected Client $httpClient;
-    protected Client $legacyClient;
-    protected string $baseDomain;
     protected string $username;
     protected string $password;
 
-    protected $baseUrl;
+    protected string $baseUrl;
 
 
-    public function __construct($username, $password, $baseUrl = "https://api.tsobu.co.ke")
+    public function __construct(string $username, string $password, string $baseUrl)
     {
         $this->username = $username;
         $this->password = $password;
@@ -28,28 +27,33 @@ class Fuelrod
             'base_uri' => $this->baseUrl,
             'headers' => [
                 'Content-Type' => 'application/json',
-//                'Accept' => 'application/json'
             ]
         ]);
 
-        $this->legacyClient = new Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Content-Type' => 'multipart/form-data',
-//                'Accept' => 'application/json'
-            ]
-        ]);
     }
 
     /**
      * @param array $message
      * @param bool $async
      * @return array
-     * @throws GuzzleException
+     * @throws GuzzleException|Exceptions\FuelrodException
      */
-    public function sms(array $message, bool $async = false): array
+    public function singleSms(array $message, bool $async = false): array
     {
-        $content = new SmsService($this->httpClient, $this->username, $this->password);
+        $content = new SmsService($this->username, $this->password);
+        $content->httpClient = $this->httpClient;
         return $content->sendSingleSms($message, $async);
+    }
+
+    /**
+     * @param array $message
+     * @return array
+     * @throws FuelrodException
+     */
+    public function plainSms(array $message): array
+    {
+        $content = new SmsService($this->username, $this->password);
+        $content->baseUrl = $this->baseUrl;
+        return $content->sendPlainSms($message);
     }
 }
