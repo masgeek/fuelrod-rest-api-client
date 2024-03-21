@@ -48,16 +48,15 @@ class SmsService extends RestService
 
     /**
      * @param array $messagePayload
-     * @param $async
      * @return array
      * @throws GuzzleException|FuelrodException
      */
-    public function sendSingleSms(array $messagePayload, $async): array
+    public function sendSingleSms(array $messagePayload): array
     {
         /* @var $httpClient Client */
+
         try {
             $response = $this->httpClient->post('v1/sms/single', [
-                'future' => $async,
                 'json' => $this->processMessage($messagePayload)
             ]);
 
