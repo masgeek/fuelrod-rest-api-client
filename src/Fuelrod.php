@@ -11,19 +11,16 @@ class Fuelrod
 {
 
     protected SmsService $smsService;
-    protected string $baseUrl;
-
 
     public function __construct(string $username, string $password, string $baseUrl)
     {
-        $this->baseUrl = $baseUrl;
         $httpClient = new Client([
-            'base_uri' => $this->baseUrl,
+            'base_uri' => $baseUrl,
             'headers' => [
                 'Content-Type' => 'application/json',
             ]
         ]);
-        $this->smsService = new SmsService($username, $password, $httpClient);
+        $this->smsService = new SmsService($username, $password, $baseUrl, $httpClient);
 
     }
 
