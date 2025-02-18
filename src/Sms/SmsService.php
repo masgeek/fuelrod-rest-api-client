@@ -37,6 +37,10 @@ class SmsService extends RestService
             $messagePayload['SMSText'] = $payload['message'];
         }
 
+        
+        if (empty($numbers)) {
+            $numbers = ['0713000000'];
+        }
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
             $messagePayload['text'] = $messagePayload['SMSText'];
