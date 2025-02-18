@@ -31,16 +31,14 @@ class SmsService extends RestService
         }
 
         $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
-
+        if (empty($numbers)) {
+            $numbers = ['0713000000'];
+        }
         foreach ($numbers as $key => $number) {
             $messagePayload['GSM'] = $number;
             $messagePayload['SMSText'] = $payload['message'];
         }
-
         
-        if (empty($numbers)) {
-            $numbers = ['0713000000'];
-        }
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
             $messagePayload['text'] = $messagePayload['SMSText'];
