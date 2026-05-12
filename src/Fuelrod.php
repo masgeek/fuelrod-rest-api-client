@@ -11,49 +11,62 @@ class Fuelrod
 {
 
     protected Client $httpClient;
-    protected string $username;
-    protected string $password;
-
+    protected ?string $username;
+    protected ?string $password;
     protected string $baseUrl;
+    protected ?string $apiKey;
 
-
-    public function __construct(string $username, string $password, string $baseUrl)
+    public function __construct(string $baseUrl, ?string $username = null, ?string $password = null, ?string $apiKey = null)
     {
+        $this->baseUrl = $baseUrl;
         $this->username = $username;
         $this->password = $password;
-        $this->baseUrl = $baseUrl;
+        $this->apiKey = $apiKey;
+
+        $headers = ['Content-Type' => 'application/json'];
+        if ($apiKey !== null) {
+            $headers['x-api-key'] = $apiKey;
+        }
 
         $this->httpClient = new Client([
             'base_uri' => $this->baseUrl,
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ]
+            'headers' => $headers,
         ]);
-
     }
 
     /**
      * @param array $message
-     * @param bool $async
      * @return array
      * @throws GuzzleException|Exceptions\FuelrodException
      */
-    public function singleSms(array $message, bool $async = false): array
+    public function singleSms(array $message): array
     {
-        $content = new SmsService($this->username, $this->password);
-        $content->httpClient = $this->httpClient;
-        return $content->sendSingleSms($message, $async);
+        $sms = new SmsService($this->username, $this->password, $this->apiKey);
+        $sms->httpClient = $this->httpClient;
+        return $sms->sendSingleSms($message);
     }
 
     /**
      * @param array $message
      * @return array
-     * @throws FuelrodException
+     * @throws FuelrodException|GuzzleException
      */
     public function plainSms(array $message): array
     {
-        $content = new SmsService($this->username, $this->password);
-        $content->baseUrl = $this->baseUrl;
-        return $content->sendPlainSms($message);
+        $sms = new SmsService($this->username, $this->password, $this->apiKey);
+        $sms->httpClient = $this->httpClient;
+        return $sms->sendPlainSms($message);
+    }
+
+    /**
+     * @param array $message
+     * @return void
+     * @throws GuzzleException|FuelrodException
+     */
+    public function premiumSms(array $message): void
+    {
+        $sms = new SmsService($this->username, $this->password, $this->apiKey);
+        $sms->httpClient = $this->httpClient;
+        $sms->sendPremiumSms($message);
     }
 }
