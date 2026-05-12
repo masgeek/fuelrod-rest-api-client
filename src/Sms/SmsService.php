@@ -3,7 +3,6 @@
 namespace Fuelrod\Sms;
 
 use Fuelrod\Exceptions\FuelrodException;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 class SmsService extends RestService
@@ -17,11 +16,6 @@ class SmsService extends RestService
      */
     public function processMessage(array $payload, bool $plainSms = false): array
     {
-        $messagePayload = [
-            'password' => $this->password,
-            'user' => $this->username
-        ];
-
         if (!isset($payload['to'])) {
             throw new FuelrodException("Recipient phone number must be defined in array key `to`", 422);
         }
@@ -30,9 +24,14 @@ class SmsService extends RestService
             throw new FuelrodException("SMS message must be defined in array key `message`", 422);
         }
 
+        // Credentials are only included when not using API key auth
+        $messagePayload = $this->apiKey === null
+            ? ['user' => $this->username, 'password' => $this->password]
+            : [];
+
         $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
 
-        foreach ($numbers as $key => $number) {
+        foreach ($numbers as $number) {
             $messagePayload['GSM'] = $number;
             $messagePayload['SMSText'] = $payload['message'];
         }
@@ -40,25 +39,23 @@ class SmsService extends RestService
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
             $messagePayload['text'] = $messagePayload['SMSText'];
-            unset($messagePayload['GSM']);
-            unset($messagePayload['SMSText']);
+            unset($messagePayload['GSM'], $messagePayload['SMSText']);
         }
+
         return $messagePayload;
     }
 
     /**
      * @param array $messagePayload
-     * @param $async
      * @return array
      * @throws GuzzleException|FuelrodException
      */
-    public function sendSingleSms(array $messagePayload, $async): array
+    public function sendSingleSms(array $messagePayload): array
     {
         /* @var $httpClient Client */
         try {
             $response = $this->httpClient->post('v1/sms/single', [
-                'future' => $async,
-                'json' => $this->processMessage($messagePayload)
+                'json' => $this->processMessage($messagePayload),
             ]);
 
             return $this->success($response);
@@ -69,33 +66,35 @@ class SmsService extends RestService
         }
     }
 
-    /***
+    /**
      * @param array $messagePayload
      * @return array
-     * @throws FuelrodException
+     * @throws FuelrodException|GuzzleException
      */
     public function sendPlainSms(array $messagePayload): array
     {
-        $data = $this->processMessage($messagePayload, true);
+        try {
+            $response = $this->httpClient->post('v1/sms/plain', [
+                'form_params' => $this->processMessage($messagePayload, true),
+            ]);
 
+            return $this->success($response);
 
-        $content = http_build_query($data);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->error($e->getResponse());
+        }
+    }
 
-        $rand = (str_pad(rand(101, 456), '24', '101'));
-        $params = [
-            'http' => [
-                'method' => 'POST',
-                'header' =>
-                    'Content-Type: application/x-www-form-urlencoded; boundary=---' . $rand,
-                'content' => $content,
-                'ignore_errors' => true,
-            ]
-        ];
-
-        $context = stream_context_create($params);
-
-        $resp = file_get_contents("{$this->baseUrl}/v1/sms/plain", false, $context);
-        return json_decode($resp, true); //return JSON as associative array
+    /**
+     * @param array $messagePayload
+     * @return void
+     * @throws FuelrodException|GuzzleException
+     */
+    public function sendPremiumSms(array $messagePayload): void
+    {
+        $this->httpClient->post('v1/sms/premium', [
+            'json' => $this->processMessage($messagePayload),
+        ]);
     }
 
 }
