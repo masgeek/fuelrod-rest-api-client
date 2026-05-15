@@ -6,32 +6,40 @@ use GuzzleHttp\Client;
 
 abstract class RestService
 {
-    public Client $httpClient;
-    public string $baseUrl;
+    protected Client $httpClient;
+    protected string $baseUrl;
     protected string $username;
     protected string $password;
-    protected string $accessToken;
+    protected ?string $apiKey;
 
-    public function __construct($username, $password)
+    public function __construct(string $username, string $password, string $baseUrl, Client $httpClient, ?string $apiKey = null)
     {
         $this->username = $username;
         $this->password = $password;
+        $this->baseUrl = $baseUrl;
+        $this->httpClient = $httpClient;
+        $this->apiKey = $apiKey;
     }
+
+    abstract public function sendSingleSms(array $messagePayload): array;
+
+    abstract public function sendPlainSms(array $messagePayload): array;
 
     protected function error($data): array
     {
+        $body = $data->getBody()->getContents();
         return [
             'status' => 'error',
-            'data' => json_decode($data->getBody()->getContents())
+            'data' => json_decode($body) ?? $body,
         ];
     }
 
-
     protected function success($data): array
     {
+        $body = $data->getBody()->getContents();
         return [
             'status' => 'success',
-            'data' => json_decode($data->getBody()->getContents())
+            'data' => json_decode($body) ?? $body,
         ];
     }
 }

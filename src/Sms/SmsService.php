@@ -3,99 +3,93 @@
 namespace Fuelrod\Sms;
 
 use Fuelrod\Exceptions\FuelrodException;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 class SmsService extends RestService
 {
 
     /**
-     * @param array $payload
-     * @param bool $plainSms
-     * @return array
      * @throws FuelrodException
      */
     public function processMessage(array $payload, bool $plainSms = false): array
     {
-        $messagePayload = [
-            'password' => $this->password,
-            'user' => $this->username
-        ];
-
-        if (!isset($payload['to'])) {
-            throw new FuelrodException("Recipient phone number must be defined in array key `to`", 422);
+        if (empty($payload['to']) || !is_string($payload['to'])) {
+            throw new FuelrodException("Recipient must be a single phone number string in array key `to`", 422);
         }
 
-        if (!isset($payload['message'])) {
+        if (empty($payload['message'])) {
             throw new FuelrodException("SMS message must be defined in array key `message`", 422);
         }
 
-        $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
-
-        foreach ($numbers as $key => $number) {
-            $messagePayload['GSM'] = $number;
-            $messagePayload['SMSText'] = $payload['message'];
+        $number = trim($payload['to']);
+        if (!preg_match('/^\+?[0-9]{7,15}$/', $number)) {
+            throw new FuelrodException("Invalid phone number format: {$number}", 422);
         }
+
+        $messagePayload = $this->apiKey === null
+            ? ['user' => $this->username, 'password' => $this->password]
+            : [];
+
+        $messagePayload['GSM'] = $number;
+        $messagePayload['SMSText'] = $payload['message'];
 
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
             $messagePayload['text'] = $messagePayload['SMSText'];
-            unset($messagePayload['GSM']);
-            unset($messagePayload['SMSText']);
+            unset($messagePayload['GSM'], $messagePayload['SMSText']);
         }
+
         return $messagePayload;
     }
 
     /**
-     * @param array $messagePayload
-     * @param $async
-     * @return array
      * @throws GuzzleException|FuelrodException
      */
-    public function sendSingleSms(array $messagePayload, $async): array
+    public function sendSingleSms(array $messagePayload): array
     {
-        /* @var $httpClient Client */
         try {
             $response = $this->httpClient->post('v1/sms/single', [
-                'future' => $async,
-                'json' => $this->processMessage($messagePayload)
+                'json' => $this->processMessage($messagePayload),
             ]);
 
             return $this->success($response);
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            $response = $e->getResponse();
-            return $this->error($response);
+            return $this->error($e->getResponse());
         }
     }
 
-    /***
-     * @param array $messagePayload
-     * @return array
-     * @throws FuelrodException
+    /**
+     * @throws FuelrodException|GuzzleException
      */
     public function sendPlainSms(array $messagePayload): array
     {
-        $data = $this->processMessage($messagePayload, true);
+        try {
+            $response = $this->httpClient->post('v1/sms/plain', [
+                'form_params' => $this->processMessage($messagePayload, true),
+            ]);
 
+            return $this->success($response);
 
-        $content = http_build_query($data);
-
-        $rand = (str_pad(rand(101, 456), '24', '101'));
-        $params = [
-            'http' => [
-                'method' => 'POST',
-                'header' =>
-                    'Content-Type: application/x-www-form-urlencoded; boundary=---' . $rand,
-                'content' => $content,
-                'ignore_errors' => true,
-            ]
-        ];
-
-        $context = stream_context_create($params);
-
-        $resp = file_get_contents("{$this->baseUrl}/v1/sms/plain", false, $context);
-        return json_decode($resp, true); //return JSON as associative array
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->error($e->getResponse());
+        }
     }
 
+    /**
+     * @throws FuelrodException|GuzzleException
+     */
+    public function sendPremiumSms(array $messagePayload): array
+    {
+        try {
+            $response = $this->httpClient->post('v1/sms/premium', [
+                'json' => $this->processMessage($messagePayload),
+            ]);
+
+            return $this->success($response);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->error($e->getResponse());
+        }
+    }
 }
