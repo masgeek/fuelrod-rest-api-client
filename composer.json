@@ -36,5 +36,8 @@
     "psr-4": {
       "Fuelrod\\Tests\\": "tests"
     }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
   }
 }
