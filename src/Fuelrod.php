@@ -10,28 +10,18 @@ use GuzzleHttp\Exception\GuzzleException;
 class Fuelrod
 {
 
-    protected Client $httpClient;
-    protected ?string $username;
-    protected ?string $password;
-    protected string $baseUrl;
-    protected ?string $apiKey;
+    protected SmsService $smsService;
 
-    public function __construct(string $baseUrl, ?string $username = null, ?string $password = null, ?string $apiKey = null)
+    public function __construct(string $username, string $password, string $baseUrl)
     {
-        $this->baseUrl = $baseUrl;
-        $this->username = $username;
-        $this->password = $password;
-        $this->apiKey = $apiKey;
-
-        $headers = ['Content-Type' => 'application/json'];
-        if ($apiKey !== null) {
-            $headers['x-api-key'] = $apiKey;
-        }
-
-        $this->httpClient = new Client([
-            'base_uri' => $this->baseUrl,
-            'headers' => $headers,
+        $httpClient = new Client([
+            'base_uri' => $baseUrl,
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ]
         ]);
+        $this->smsService = new SmsService($username, $password, $baseUrl, $httpClient);
+
     }
 
     /**
@@ -41,9 +31,7 @@ class Fuelrod
      */
     public function singleSms(array $message): array
     {
-        $sms = new SmsService($this->username, $this->password, $this->apiKey);
-        $sms->httpClient = $this->httpClient;
-        return $sms->sendSingleSms($message);
+        return $this->smsService->sendSingleSms($message);
     }
 
     /**
@@ -53,20 +41,6 @@ class Fuelrod
      */
     public function plainSms(array $message): array
     {
-        $sms = new SmsService($this->username, $this->password, $this->apiKey);
-        $sms->httpClient = $this->httpClient;
-        return $sms->sendPlainSms($message);
-    }
-
-    /**
-     * @param array $message
-     * @return void
-     * @throws GuzzleException|FuelrodException
-     */
-    public function premiumSms(array $message): void
-    {
-        $sms = new SmsService($this->username, $this->password, $this->apiKey);
-        $sms->httpClient = $this->httpClient;
-        $sms->sendPremiumSms($message);
+        return $this->smsService->sendPlainSms($message);
     }
 }

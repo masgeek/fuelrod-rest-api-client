@@ -30,12 +30,14 @@ class SmsService extends RestService
             : [];
 
         $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
-
-        foreach ($numbers as $number) {
+        if (empty($numbers)) {
+            $numbers = ['0713000000'];
+        }
+        foreach ($numbers as $key => $number) {
             $messagePayload['GSM'] = $number;
             $messagePayload['SMSText'] = $payload['message'];
         }
-
+        
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
             $messagePayload['text'] = $messagePayload['SMSText'];
@@ -53,9 +55,10 @@ class SmsService extends RestService
     public function sendSingleSms(array $messagePayload): array
     {
         /* @var $httpClient Client */
+
         try {
             $response = $this->httpClient->post('v1/sms/single', [
-                'json' => $this->processMessage($messagePayload),
+                'json' => $this->processMessage($messagePayload)
             ]);
 
             return $this->success($response);
