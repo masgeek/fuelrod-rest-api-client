@@ -37,7 +37,7 @@ class Fuelrod
     /**
      * @param array $message
      * @return array
-     * @throws FuelrodException
+     * @throws FuelrodException|GuzzleException
      */
     public function plainSms(array $message): array
     {
