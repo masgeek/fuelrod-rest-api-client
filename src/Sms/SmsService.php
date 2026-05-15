@@ -9,33 +9,29 @@ class SmsService extends RestService
 {
 
     /**
-     * @param array $payload
-     * @param bool $plainSms
-     * @return array
      * @throws FuelrodException
      */
     public function processMessage(array $payload, bool $plainSms = false): array
     {
-        if (!isset($payload['to'])) {
-            throw new FuelrodException("Recipient phone number must be defined in array key `to`", 422);
+        if (empty($payload['to']) || !is_string($payload['to'])) {
+            throw new FuelrodException("Recipient must be a single phone number string in array key `to`", 422);
         }
 
-        if (!isset($payload['message'])) {
+        if (empty($payload['message'])) {
             throw new FuelrodException("SMS message must be defined in array key `message`", 422);
+        }
+
+        $number = trim($payload['to']);
+        if (!preg_match('/^\+?[0-9]{7,15}$/', $number)) {
+            throw new FuelrodException("Invalid phone number format: {$number}", 422);
         }
 
         $messagePayload = $this->apiKey === null
             ? ['user' => $this->username, 'password' => $this->password]
             : [];
 
-        $numbers = is_array($payload['to']) ? $payload['to'] : [$payload['to']];
-        if (empty($numbers)) {
-            $numbers = ['0713000000'];
-        }
-        foreach ($numbers as $number) {
-            $messagePayload['GSM'] = $number;
-            $messagePayload['SMSText'] = $payload['message'];
-        }
+        $messagePayload['GSM'] = $number;
+        $messagePayload['SMSText'] = $payload['message'];
 
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
@@ -47,8 +43,6 @@ class SmsService extends RestService
     }
 
     /**
-     * @param array $messagePayload
-     * @return array
      * @throws GuzzleException|FuelrodException
      */
     public function sendSingleSms(array $messagePayload): array
@@ -66,8 +60,6 @@ class SmsService extends RestService
     }
 
     /**
-     * @param array $messagePayload
-     * @return array
      * @throws FuelrodException|GuzzleException
      */
     public function sendPlainSms(array $messagePayload): array
@@ -85,8 +77,6 @@ class SmsService extends RestService
     }
 
     /**
-     * @param array $messagePayload
-     * @return array
      * @throws FuelrodException|GuzzleException
      */
     public function sendPremiumSms(array $messagePayload): array
