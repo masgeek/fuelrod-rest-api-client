@@ -27,12 +27,12 @@ class SmsServiceTest extends TestCase
 
     private function makeServiceWithApiKey(string $apiKey): SmsService
     {
-        $handler = HandlerStack::create(new MockHandler());
+        $handler = HandlerStack::create($this->mockHandler);
         $client = new Client(['handler' => $handler]);
         return new SmsService('testuser', 'testpass', 'https://api.fuelrod.test', $client, $apiKey);
     }
 
-    // --- processMessage ---
+    // --- processMessage: missing fields ---
 
     public function testProcessMessageThrowsWhenToIsMissing(): void
     {
@@ -41,12 +41,58 @@ class SmsServiceTest extends TestCase
         $this->service->processMessage(['message' => 'Hello']);
     }
 
+    public function testProcessMessageThrowsWhenToIsArray(): void
+    {
+        $this->expectException(FuelrodException::class);
+        $this->expectExceptionCode(422);
+        $this->service->processMessage(['to' => ['0712345678'], 'message' => 'Hello']);
+    }
+
     public function testProcessMessageThrowsWhenMessageIsMissing(): void
     {
         $this->expectException(FuelrodException::class);
         $this->expectExceptionCode(422);
         $this->service->processMessage(['to' => '0712345678']);
     }
+
+    // --- processMessage: phone number validation ---
+
+    public function testProcessMessageThrowsOnInvalidPhoneNumber(): void
+    {
+        $this->expectException(FuelrodException::class);
+        $this->expectExceptionCode(422);
+        $this->service->processMessage(['to' => 'not-a-number', 'message' => 'Hello']);
+    }
+
+    public function testProcessMessageThrowsOnTooShortNumber(): void
+    {
+        $this->expectException(FuelrodException::class);
+        $this->expectExceptionCode(422);
+        $this->service->processMessage(['to' => '123', 'message' => 'Hello']);
+    }
+
+    public function testProcessMessageAcceptsLocalFormat(): void
+    {
+        $result = $this->service->processMessage(['to' => '0712345678', 'message' => 'Hello']);
+
+        $this->assertSame('0712345678', $result['GSM']);
+    }
+
+    public function testProcessMessageAcceptsE164Format(): void
+    {
+        $result = $this->service->processMessage(['to' => '+254712345678', 'message' => 'Hello']);
+
+        $this->assertSame('+254712345678', $result['GSM']);
+    }
+
+    public function testProcessMessageTrimsWhitespaceFromNumber(): void
+    {
+        $result = $this->service->processMessage(['to' => '  0712345678  ', 'message' => 'Hello']);
+
+        $this->assertSame('0712345678', $result['GSM']);
+    }
+
+    // --- processMessage: auth ---
 
     public function testProcessMessageIncludesCredentialsWhenNoApiKey(): void
     {
@@ -65,6 +111,8 @@ class SmsServiceTest extends TestCase
         $this->assertArrayNotHasKey('password', $result);
     }
 
+    // --- processMessage: field mapping ---
+
     public function testProcessMessageMapsFieldsForSingleSms(): void
     {
         $result = $this->service->processMessage(['to' => '0712345678', 'message' => 'Hello World']);
@@ -73,24 +121,6 @@ class SmsServiceTest extends TestCase
         $this->assertSame('Hello World', $result['SMSText']);
         $this->assertArrayNotHasKey('to', $result);
         $this->assertArrayNotHasKey('text', $result);
-    }
-
-    public function testProcessMessageWithArrayRecipientsUsesLastNumber(): void
-    {
-        $result = $this->service->processMessage([
-            'to' => ['0712345678', '0722345678'],
-            'message' => 'Hello',
-        ]);
-
-        // The loop overwrites on each iteration, so the last number wins
-        $this->assertSame('0722345678', $result['GSM']);
-    }
-
-    public function testProcessMessageFallsBackToDefaultNumberWhenEmptyArray(): void
-    {
-        $result = $this->service->processMessage(['to' => [], 'message' => 'Hello']);
-
-        $this->assertSame('0713000000', $result['GSM']);
     }
 
     public function testProcessMessageRemapsFieldsForPlainSms(): void
