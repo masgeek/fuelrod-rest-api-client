@@ -24,7 +24,6 @@ class SmsService extends RestService
             throw new FuelrodException("SMS message must be defined in array key `message`", 422);
         }
 
-        // Credentials are only included when not using API key auth
         $messagePayload = $this->apiKey === null
             ? ['user' => $this->username, 'password' => $this->password]
             : [];
@@ -33,11 +32,11 @@ class SmsService extends RestService
         if (empty($numbers)) {
             $numbers = ['0713000000'];
         }
-        foreach ($numbers as $key => $number) {
+        foreach ($numbers as $number) {
             $messagePayload['GSM'] = $number;
             $messagePayload['SMSText'] = $payload['message'];
         }
-        
+
         if ($plainSms) {
             $messagePayload['to'] = $messagePayload['GSM'];
             $messagePayload['text'] = $messagePayload['SMSText'];
@@ -54,18 +53,15 @@ class SmsService extends RestService
      */
     public function sendSingleSms(array $messagePayload): array
     {
-        /* @var $httpClient Client */
-
         try {
             $response = $this->httpClient->post('v1/sms/single', [
-                'json' => $this->processMessage($messagePayload)
+                'json' => $this->processMessage($messagePayload),
             ]);
 
             return $this->success($response);
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            $response = $e->getResponse();
-            return $this->error($response);
+            return $this->error($e->getResponse());
         }
     }
 
@@ -90,14 +86,20 @@ class SmsService extends RestService
 
     /**
      * @param array $messagePayload
-     * @return void
+     * @return array
      * @throws FuelrodException|GuzzleException
      */
-    public function sendPremiumSms(array $messagePayload): void
+    public function sendPremiumSms(array $messagePayload): array
     {
-        $this->httpClient->post('v1/sms/premium', [
-            'json' => $this->processMessage($messagePayload),
-        ]);
-    }
+        try {
+            $response = $this->httpClient->post('v1/sms/premium', [
+                'json' => $this->processMessage($messagePayload),
+            ]);
 
+            return $this->success($response);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->error($e->getResponse());
+        }
+    }
 }
